@@ -1,3 +1,9 @@
+# Google API apikey
+apikey.json
+
+# YOLOv3 precompiled model
+yolo.h5
+
 # PyCharm
 .idea/
 

@@ -3,7 +3,7 @@ import time
 import cv2
 import numpy as np
 
-from model.yolo_model import YOLO
+from yolov3.model.yolo_model import YOLO
 
 
 def process_image(img):

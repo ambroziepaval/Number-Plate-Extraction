@@ -169,5 +169,5 @@ image = cv2.imread(path)
 detected_cars = detect_cars_image(image, yolo, all_classes)
 print('Cars detected: ' + str(len(detected_cars)))
 for (i, car) in enumerate(detected_cars):
-    path = 'images/cars/car' + str(i) + '.png'
+    path = 'images/cars/car' + str(i) + '.jpg'
     cv2.imwrite(path, car)

@@ -6,7 +6,6 @@ import cv2
 test_frame = cv2.imread("visionapi/test_frame.png")
 test_car = cv2.imread("lpdetection/car.jpg")
 
-
 # Integration Test: Vision API
 # vision_api = vision.Vision()
 # texts = vision_api.detect_texts(test_frame)

@@ -1,5 +1,6 @@
 """YOLO v3 output
 """
+import os
 import numpy as np
 import keras.backend as K
 from keras.models import load_model
@@ -15,7 +16,7 @@ class YOLO:
         """
         self._t1 = obj_threshold
         self._t2 = nms_threshold
-        self._yolo = load_model('data/yolo.h5')
+        self._yolo = load_model(os.path.join(os.path.dirname(__file__), os.pardir) + '/data/yolo.h5')
 
     def _process_feats(self, out, anchors, mask):
         """process output features.

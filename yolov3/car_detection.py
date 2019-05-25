@@ -1,5 +1,6 @@
 import time
 
+import os
 import cv2
 import numpy as np
 
@@ -153,21 +154,37 @@ def detect_cars_image(image, yolo, all_classes):
     return cars
 
 
-# load the YOLO model
-yolo = YOLO(0.6, 0.5)
-# load the YOLO available classes
-all_classes = get_classes('data/coco_classes.txt')
+def testYoloDetection():
+    # load the YOLO model
+    yolo = YOLO(0.6, 0.5)
+    # load the YOLO available classes
+    all_classes = get_classes('data/coco_classes.txt')
+    img = 'test_frame.png'
+    path = 'images/' + img
+    image = cv2.imread(path)
+    # img = detect_image(image, yolo, all_classes)
+    # cv2.imshow('img', img)
+    # cv2.waitKey(0)
+    detected_cars = detect_cars_image(image, yolo, all_classes)
+    print('Cars detected: ' + str(len(detected_cars)))
+    for (i, car) in enumerate(detected_cars):
+        path = 'images/cars/car' + str(i) + '.jpg'
+        cv2.imwrite(path, car)
 
-img = 'test_frame.png'
-path = 'images/' + img
-image = cv2.imread(path)
 
-# img = detect_image(image, yolo, all_classes)
-# cv2.imshow('img', img)
-# cv2.waitKey(0)
+# testYoloDetection()
 
-detected_cars = detect_cars_image(image, yolo, all_classes)
-print('Cars detected: ' + str(len(detected_cars)))
-for (i, car) in enumerate(detected_cars):
-    path = 'images/cars/car' + str(i) + '.jpg'
-    cv2.imwrite(path, car)
+
+class YoloDetector:
+    __yolo = None
+    __all_classes = None
+
+    def __init__(self) -> None:
+        # load the YOLO model
+        self.yolo = YOLO(0.6, 0.5)
+        # load the YOLO available classes
+        self.all_classes = get_classes(os.path.dirname(__file__) + '/data/coco_classes.txt')
+
+    def detect_cars(self, image):
+        detected_cars = detect_cars_image(image, self.yolo, self.all_classes)
+        return detected_cars

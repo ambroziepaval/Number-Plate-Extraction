@@ -1,5 +1,7 @@
 # import the necessary packages
 from imutils.object_detection import non_max_suppression
+from utils import text_filter
+
 import numpy as np
 import pytesseract
 import argparse
@@ -157,9 +159,7 @@ for (startX, startY, endX, endY) in boxes:
 # sort the results bounding box coordinates from top to bottom
 results = sorted(results, key=lambda r: r[0][1])
 
-dates = []
-potential_numbers = []
-
+texts = []
 # loop over the results
 for ((startX, startY, endX, endY), text) in results:
     # display the text OCR'd by Tesseract
@@ -167,48 +167,9 @@ for ((startX, startY, endX, endY), text) in results:
     print("========")
     print("{}\n".format(text))
 
-    text = text.replace(" ", "")
+    texts.append(text)
 
-    date_pattern = re.compile("^\\d{1,2}/\\d{1,2}/\\d{4}$"
-                              "|^\\d{4}/\\d{1,2}/\\d{2}$")
-    found_dates = re.findall(date_pattern, text)
-    if found_dates:
-        dates.append(found_dates[0])
-
-    number_pattern = re.compile("[A-Z]{2}\\d{2}[A-Z]{3}|[B]\\d{2,3}[A-Z]{3}")
-    found_numbers = re.findall(number_pattern, text)
-    if found_numbers:
-        potential_numbers.append(found_numbers[0])
-
-# Save the detected dates into a dates.txt file
+nprTextsFilter = text_filter.NprTextsFilter()
+dates, numbers = nprTextsFilter.filterDatesAndPlates(texts)
 print("Dates: " + str(dates))
-with open("output/dates.txt", "w") as dates_file:
-    dates_file.truncate(0)
-    for date in dates:
-        print(date, file=dates_file)
-
-# From the detected numbers, filter all of them accordingly to the romanian number plate
-print("Potential numbers: " + str(potential_numbers))
-numbers = []
-for number in potential_numbers:
-    # workarounds
-    if number[0:2] == "CI":
-        number = str(number).replace(number[0:2], "CJ", 1)
-
-    nr_regex = "B\\d{2,3}[A-Z]{3}"
-    ro_county_auto = ["AB", "AG", "AR", "BC", "BH", "BN", "BR", "BT", "BV", "BZ", "CJ", "CL", "CS", "CT", "CV", "DB",
-                      "DJ", "GJ", "GL", "GR", "HD", "HR", "IF", "IL", "IS", "MH", "MM", "MS", "NT", "OT", "PH", "SB",
-                      "SJ", "SM", "TL", "TM", "TR", "VL", "VN", "VS"]
-    for county in ro_county_auto:
-        nr_regex += "|" + county + "\\d{2}[A-Z]{3}"
-    ro_nr_pattern = re.compile(nr_regex)
-    ro_nrs = re.findall(ro_nr_pattern, number)
-    if ro_nrs:
-        numbers.append(ro_nrs[0])
-
-# Save the detected numbers into a numbers.txt file
 print("Numbers: " + str(numbers))
-with open("output/numbers.txt", "w") as numbers_file:
-    numbers_file.truncate(0)
-    for number in numbers:
-        print(number, file=numbers_file)

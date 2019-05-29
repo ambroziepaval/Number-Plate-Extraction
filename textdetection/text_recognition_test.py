@@ -7,6 +7,7 @@ import pytesseract
 import argparse
 import cv2
 import re
+import os
 
 
 def decode_predictions(scores, geometry):
@@ -104,7 +105,7 @@ layerNames = [
 
 # load the pre-trained EAST text detector
 print("[INFO] loading EAST text detector...")
-net = cv2.dnn.readNet("frozen_east_text_detection.pb")
+net = cv2.dnn.readNet(os.path.dirname(__file__) + "/frozen_east_text_detection.pb")
 
 # construct a blob from the image and then perform a forward pass of
 # the model to obtain the two output layer sets

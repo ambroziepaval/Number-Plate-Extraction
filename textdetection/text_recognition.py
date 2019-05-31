@@ -9,7 +9,7 @@ import re
 import os
 
 
-def decode_predictions(scores, geometry):
+def _decode_predictions(scores, geometry):
     # grab the number of rows and columns from the scores volume, then
     # initialize our set of bounding box rectangles and corresponding0
     # confidence scores
@@ -66,7 +66,7 @@ def decode_predictions(scores, geometry):
     return rects, confidences
 
 
-def apply_pytesseract_predictions(image, rW, rH, boxes):
+def _apply_pytesseract_predictions(image, rW, rH, boxes):
     """
     Extract the texts using pytesseract from the text boxes detected with the text detector.
     :param image:
@@ -108,49 +108,53 @@ def apply_pytesseract_predictions(image, rW, rH, boxes):
     return texts
 
 
-def extract_text(input_img):
-    (origH, origW) = input_img.shape[:2]
+class EastTextDetector:
+    __east_net = None
+    __layer_names = None
 
-    # set the new width and height and then determine the ratio in change
-    # for both the width and height
-    # use default of 320 & 320
-    (newW, newH) = (320, 320)
-    rW = origW / float(newW)
-    rH = origH / float(newH)
+    def __init__(self) -> None:
+        super().__init__()
+        # load the pre-trained EAST text detector
+        print("[INFO] Loading pre-trained EAST text detector...")
+        self.__east_net = cv2.dnn.readNet(os.path.dirname(__file__) + "/frozen_east_text_detection.pb")
+        self.__layer_names = ["feature_fusion/Conv_7/Sigmoid", "feature_fusion/concat_3"]
 
-    # resize the image and grab the new image dimensions
-    image = cv2.resize(input_img, (newW, newH))
-    (H, W) = image.shape[:2]
+    def extract_text(self, input_img):
+        (origH, origW) = input_img.shape[:2]
 
-    # define the two output layer names for the EAST detector model that we are interested
-    # the first is the output probabilities and the second can be used to derive the bounding box coordinates of text
-    layerNames = ["feature_fusion/Conv_7/Sigmoid",
-                  "feature_fusion/concat_3"]
+        # set the new width and height and then determine the ratio in change
+        # for both the width and height
+        # use default of 320 & 320
+        (newW, newH) = (320, 320)
+        rW = origW / float(newW)
+        rH = origH / float(newH)
 
-    # load the pre-trained EAST text detector
-    print("[INFO] Loading pre-trained EAST text detector...")
-    net = cv2.dnn.readNet(os.path.dirname(__file__) + "/frozen_east_text_detection.pb")
+        # resize the image and grab the new image dimensions
+        image = cv2.resize(input_img, (newW, newH))
+        (H, W) = image.shape[:2]
 
-    # construct a blob from the image and then perform a forward pass of
-    # the model to obtain the two output layer sets
-    blob = cv2.dnn.blobFromImage(image, 1.0, (W, H), (123.68, 116.78, 103.94), swapRB=True, crop=False)
-    net.setInput(blob)
-    (scores, geometry) = net.forward(layerNames)
+        # construct a blob from the image and then perform a forward pass of
+        # the model to obtain the two output layer sets
+        blob = cv2.dnn.blobFromImage(image, 1.0, (W, H), (123.68, 116.78, 103.94), swapRB=True, crop=False)
+        self.__east_net.setInput(blob)
+        (scores, geometry) = self.__east_net.forward(self.__layer_names)
 
-    # decode the predictions, then  apply non-maxima suppression to
-    # suppress weak, overlapping bounding boxes
-    (rects, confidences) = decode_predictions(scores, geometry)
-    boxes = non_max_suppression(np.array(rects), probs=confidences)
+        # decode the predictions, then  apply non-maxima suppression to
+        # suppress weak, overlapping bounding boxes
+        (rects, confidences) = _decode_predictions(scores, geometry)
+        boxes = non_max_suppression(np.array(rects), probs=confidences)
 
-    # extract the text using pytesseract
-    texts = apply_pytesseract_predictions(input_img.copy(), rW, rH, boxes)
+        # extract the text using pytesseract
+        texts = _apply_pytesseract_predictions(input_img.copy(), rW, rH, boxes)
 
-    nprTextsFilter = text_filter.NprTextsFilter()
-    dates, numbers = nprTextsFilter.filterDatesAndPlates(texts)
-    return dates, numbers
+        nprTextsFilter = text_filter.NprTextsFilter()
+        dates, numbers = nprTextsFilter.filterDatesAndPlates(texts)
+        return dates, numbers
 
+
+eastDetector = EastTextDetector()
 
 image = cv2.imread('test_frame.png')
-dates, numbers = extract_text(image)
+dates, numbers = eastDetector.extract_text(image)
 print(dates)
 print(numbers)

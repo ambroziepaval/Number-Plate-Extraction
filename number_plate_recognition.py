@@ -7,6 +7,21 @@ from yolov3 import car_detection
 from utils import text_filter
 from collections import defaultdict
 
+
+def write_result(result_map):
+    """
+    Write the result map into a txt file
+
+    :param result_map: the detection result map Map <Date, List<Number>>
+    """
+    global date, number
+    file = open("result.txt", "w")
+    for date in result_map.keys():
+        for number in result_map[date]:
+            file.write(str(date) + " - " + number)
+    file.close()
+
+
 NO_DATE = "NO_DATE"
 
 cap = cv2.VideoCapture("input/cctv1.mp4")
@@ -44,8 +59,8 @@ print(str(len(frames)) + " frames collected for the recognition.")
 eastDetector = text_recognition.EastTextDetector()
 yoloDetector = car_detection.YoloDetector()
 nplDetector = number_plate_detection.NumberPlateDetection()
-nprTextsFilter = text_filter.NprTextsFilter()
 visionDetector = vision.Vision()
+nprTextsFilter = text_filter.NprTextsFilter()
 
 
 def get_date_from_margins(input_image, visionDetector, nprTextsFilter):
@@ -79,7 +94,6 @@ def get_date_from_margins(input_image, visionDetector, nprTextsFilter):
 
 
 result = defaultdict(list)
-
 for frame in frames:
 
     # Initial text recognition using east text detection and recognition
@@ -107,6 +121,7 @@ for frame in frames:
     date = get_date_from_margins(frame, visionDetector, nprTextsFilter) \
         if east_date is None and len(detected_numbers) > 0 else east_date
 
+    # add the detected number plates into a Map <Date, List<Number>>
     map_key = date if date is not None else NO_DATE
     distinct_numbers = set(detected_numbers)
     for number in distinct_numbers:
@@ -114,3 +129,4 @@ for frame in frames:
             result[map_key].append(number)
 
 print(result)
+write_result(result)

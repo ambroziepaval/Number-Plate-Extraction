@@ -151,10 +151,13 @@ class EastTextDetector:
         dates, numbers = nprTextsFilter.filterDatesAndPlates(texts)
         return dates, numbers
 
+    def extract_numbers_first_date(self, input_img):
+        """
+        Extract the detected date and numbers.
+        The date is always one, so we only return the first.
 
-eastDetector = EastTextDetector()
-
-image = cv2.imread('test_frame.png')
-dates, numbers = eastDetector.extract_text(image)
-print(dates)
-print(numbers)
+        :param input_img: the frame upon which we run the text detection and recognition.
+        :return: detected date or None if it is not existent, and all detected number plate texts.
+        """
+        dates, numbers = self.extract_text(input_img)
+        return dates[0] if len(dates) > 0 else None, numbers

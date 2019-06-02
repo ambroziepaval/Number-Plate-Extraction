@@ -47,28 +47,29 @@ class NprTextsFilter:
     __number_pattern = None
 
     def __init__(self) -> None:
-        self.__date_pattern = re.compile("^\\d{1,2}/\\d{1,2}/\\d{4}$|^\\d{4}/\\d{1,2}/\\d{2}$")
+        self.__date_pattern = re.compile("^\\d{1,2}/\\d{1,2}/2\\d{3}$|^2\\d{3}/\\d{1,2}/\\d{2}$")
         self.__number_pattern = re.compile("[A-Z]{2}\\d{2}[A-Z]{3}|[B]\\d{2,3}[A-Z]{3}")
 
     def filterDatesAndPlates(self, strings):
         """
-        Detect the dates and Romanian number plates texts from all detected text.
+        Detect the dates and Romanian number plates texts from all detected texts.
 
         :param strings: the list of texts from the detection
         :return: tuple of 2 lists: (dates, numbers)
         """
+        return self.filterDates(strings), self.filterNumberPlates(strings)
 
-        dates = []
+    def filterNumberPlates(self, strings):
+        """
+        Detect the Romanian number plates texts from all detected texts.
+
+        :param strings: the list of texts from the detection
+        :return: the list of detected number plates
+        """
         number_candidates = []
-
         for text in strings:
             # filter out not needed spaces from within the text
             text = text.replace(" ", "")
-
-            # find the date from within the text
-            found_dates = re.findall(self.__date_pattern, text)
-            if found_dates:
-                dates.append(found_dates[0])
 
             # find the potential number from within the text
             # further filtering will be done
@@ -76,7 +77,24 @@ class NprTextsFilter:
             if found_numbers:
                 number_candidates.append(found_numbers[0])
 
-        # filtering with a specific romanian number plate regex
+            # filtering with a specific romanian number plate regex
         numbers = _filterRomanianNumbers(number_candidates)
 
-        return dates, numbers
+        return numbers
+
+    def filterDates(self, strings):
+        """
+        Detect the dates text from all detected texts.
+
+        :param strings: the list of texts from the detection
+        :return: the list of detected dates
+        """
+        dates = []
+        for text in strings:
+            # filter out not needed spaces from within the text
+            text = text.replace(" ", "")
+
+            found_dates = re.findall(self.__date_pattern, text)
+            if found_dates:
+                dates.append(found_dates[0])
+        return dates

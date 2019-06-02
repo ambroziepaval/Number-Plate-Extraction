@@ -30,7 +30,7 @@ class Vision:
 
         texts = []
         for text in detected_texts:
-            print('\n"{}"'.format(text.description))
+            # print('\n"{}"'.format(text.description))
             texts.append(text.description)
 
         return texts

@@ -145,7 +145,7 @@ def detect_cars_image(image, yolo, all_classes):
     boxes, classes, scores = yolo.predict(processed_image, image.shape)
     end = time.time()
 
-    print('Detection time: {0:.2f}s'.format(end - start))
+    print('YOLO Detection time: {0:.2f}s'.format(end - start))
 
     cars = []
     if boxes is not None:

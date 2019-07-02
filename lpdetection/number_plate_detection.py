@@ -173,7 +173,7 @@ class NumberPlateDetection:
         # From the rectangles, only keep the ones that have a horizontal orientation
         filteredRectangles = filterHorizontalRectangles(filteredRectangles)
 
-        print('{0:d} numbers found'.format(len(filteredRectangles)))
+        print('{0:d} potential number locations found'.format(len(filteredRectangles)))
 
         number_images = []
         for (top_left, bottom_right) in filteredRectangles:

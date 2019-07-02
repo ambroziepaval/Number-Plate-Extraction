@@ -94,10 +94,15 @@ def get_date_from_margins(input_image, visionDetector, nprTextsFilter):
 
 
 result = defaultdict(list)
+frame_count = 0
 for frame in frames:
+    frame_count += 1
+    print('\nFrame {0:d} / {1:d}'.format(frame_count, len(frames)))
 
     # Initial text recognition using east text detection and recognition
     east_date, east_numbers = eastDetector.extract_numbers_first_date(frame)
+    if east_date is not None:
+        print("Date recognised using the EAST text detection.")
 
     # Car detection from within every frame
     detected_vehicles = yoloDetector.detect_cars(frame)
@@ -127,6 +132,7 @@ for frame in frames:
     for number in distinct_numbers:
         if number not in result[map_key]:
             result[map_key].append(number)
+        print("\t" + str(map_key) + " - " + number)
 
 print(result)
 write_result(result)
